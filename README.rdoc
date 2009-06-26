@@ -41,21 +41,21 @@ You can also set options on the tags.  The only option currently supported is :f
 
 == Get it
 
-  $ sudo gem install is_taggable
+  $ sudo gem install bdimcheff-is_taggable -s http://gems.github.com
   
 As a rails gem dependency:
 
-  config.gem 'is_taggable'
+  config.gem 'bdimcheff-is_taggable', :lib => 'is_taggable'
 
 Or get the source from github:
 
-  $ git clone git://github.com/giraffesoft/is_taggable.git
+  $ git clone git://github.com/bdimcheff/is_taggable.git
 
-(or fork it at http://github.com/giraffesoft/is_taggable)
+(or fork it at http://github.com/bdimcheff/is_taggable)
 
 == Credits
 
-is_taggable was created, and is maintained by Daniel Haran and James Golick.
+is_taggable was created, and is maintained by Daniel Haran and James Golick.  Brandon Dimcheff added fixed tag vocabulary support.
 
 == License
 
