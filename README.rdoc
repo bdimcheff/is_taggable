@@ -33,6 +33,12 @@ A comma is the default tag separator, but this can be easily changed:
 
   IsTaggable::TagList.delimiter = " "
 
+You can also set options on the tags.  The only option currently supported is :fixed.  If you set :fixed => true, tags will not be added to a taggable model unless you explicitly create a Tag record.  This is for tagging with fixed vocabularies.
+
+  class User < ActiveRecord::Base
+    is_taggable :tags, :fixed => true
+  end
+
 == Get it
 
   $ sudo gem install is_taggable

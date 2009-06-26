@@ -18,6 +18,10 @@ ActiveRecord::Schema.define(:version => 0) do
     t.string  :title, :default => ''
   end
 
+  create_table :pages do |t|
+    t.string :title, :default => ''
+  end
+
   create_table :tags do |t|
     t.string :name, :default => ''
     t.string :kind, :default => '' 
@@ -37,4 +41,8 @@ end
 
 class Comment < ActiveRecord::Base
   is_taggable
+end
+
+class Page < ActiveRecord::Base
+  is_taggable :categories, :fixed => true
 end

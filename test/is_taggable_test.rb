@@ -76,4 +76,15 @@ Expectations do
     p.save!
     p.tags.length
   end
+
+  expect ["foo", "bar"] do
+    Tag.create(:name => 'foo', :kind => 'category')
+    Tag.create(:name => 'bar', :kind => 'category')
+
+    p = Page.new
+    p.category_list = "foo, bar, baz"
+    p.save!
+    p.tags.reload
+    p.category_list
+  end
 end

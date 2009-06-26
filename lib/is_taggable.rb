@@ -20,7 +20,13 @@ module IsTaggable
 
   module ActiveRecordExtension
     def is_taggable(*kinds)
-      class_inheritable_accessor :tag_kinds
+      class_inheritable_accessor :tag_kinds, :tag_options
+      default_options = { :fixed => false }
+      self.tag_options = if kinds[-1].is_a?(Hash)
+                           default_options.merge(kinds.delete_at(-1))
+                         else
+                           default_options
+                         end
       self.tag_kinds = kinds.map(&:to_s).map(&:singularize)
       self.tag_kinds << :tag if kinds.empty?
 
@@ -68,6 +74,7 @@ module IsTaggable
           tag_kinds.each do |tag_kind|
             delete_unused_tags(tag_kind)
             add_new_tags(tag_kind)
+            set_tag_list(tag_kind, tags.of_kind(tag_kind).map(&:name))
           end
 
           taggings.each(&:save)
@@ -79,8 +86,14 @@ module IsTaggable
 
         def add_new_tags(tag_kind)
           tag_names = tags.of_kind(tag_kind).map(&:name)
-          get_tag_list(tag_kind).each do |tag_name| 
-            tags << Tag.find_or_initialize_with_name_like_and_kind(tag_name, tag_kind) unless tag_names.include?(tag_name)
+          get_tag_list(tag_kind).each do |tag_name|
+            if tag_options[:fixed]
+              tag = Tag.with_name_like_and_kind(tag_name, tag_kind) unless tag_names.include?(tag_name)
+            else
+              tag = Tag.find_or_initialize_with_name_like_and_kind(tag_name, tag_kind) unless tag_names.include?(tag_name)
+            end
+
+            tags << tag if tag
           end
         end
     end
