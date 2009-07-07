@@ -1,7 +1,17 @@
 path = File.expand_path(File.dirname(__FILE__))
 $LOAD_PATH << path unless $LOAD_PATH.include?(path)
-require 'is_taggable/tag' unless Object.const_defined? :Tag
-require 'is_taggable/tagging' unless Object.const_defined? :Tagging
+
+begin
+  Tag
+rescue NameError
+  require 'is_taggable/tag'
+end
+
+begin
+  Tagging
+rescue NameError
+  require 'is_taggable/tagging'
+end
 
 module IsTaggable
   class TagList < Array
