@@ -2,7 +2,10 @@ require 'rubygems'
 require 'activerecord'
 require File.dirname(__FILE__)+'/../lib/is_taggable'
 require 'expectations'
+require 'test/unit'
+require 'shoulda'
 require 'logger'
+require 'ruby-debug'
 
 ActiveRecord::Base.configurations = {'sqlite3' => {:adapter => 'sqlite3', :database => ':memory:'}}
 ActiveRecord::Base.establish_connection('sqlite3')
@@ -21,6 +24,10 @@ ActiveRecord::Schema.define(:version => 0) do
   create_table :pages do |t|
     t.string :title, :default => ''
   end
+  
+  create_table :users do |t|
+    t.string :username
+  end
 
   create_table :tags do |t|
     t.string :name, :default => ''
@@ -32,6 +39,9 @@ ActiveRecord::Schema.define(:version => 0) do
 
     t.string  :taggable_type, :default => ''
     t.integer :taggable_id
+    
+    t.integer :user_id
+    t.string  :user_type
   end
 end
 
@@ -45,4 +55,8 @@ end
 
 class Page < ActiveRecord::Base
   is_taggable :categories, :fixed => true
+end
+
+class User < ActiveRecord::Base
+  
 end

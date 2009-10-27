@@ -88,3 +88,91 @@ Expectations do
     p.category_list
   end
 end
+
+
+class IsTaggableTest < Test::Unit::TestCase
+  should "tag things as a specified user" do
+    u = User.create
+    p = Post.new
+    
+    p.tag_as_user(u) do
+      p.tag_list = "foo, bar"
+      p.save
+    end
+    
+    assert_equal 2, p.taggings.size
+    
+    p.taggings.each do |tagging|
+      assert_equal u, tagging.user
+    end
+  end
+  
+  should "only effect things that happen within the block" do
+    u = User.create
+    p = Post.new
+    
+    p.tag_as_user(u) do
+      p.tag_list = "foo, bar"
+      p.save
+    end
+
+    p.tag_list = "baz, quux"
+    p.save
+    
+    assert_equal 4, p.taggings.size
+
+    taggings = p.tags.inject({}) do |h,t| 
+      h[t.name] = t.taggings.find(:first, :conditions => {:taggable_id => p, :taggable_type => "Post"})
+      h
+    end
+
+    assert_equal u,   taggings["foo"].user
+    assert_equal u,   taggings["bar"].user
+    assert_equal nil, taggings["baz"].user
+    assert_equal nil, taggings["quux"].user
+  end
+  
+  should "allow different users to tag things the same" do
+    u1 = User.create
+    u2 = User.create
+    p = Post.new
+    
+    p.tag_as_user(u1) do
+      p.tag_list = "foo, bar"
+      p.save
+    end
+    
+    p.tag_as_user(u2) do
+      p.tag_list = "bar, baz"
+      p.save
+    end
+    
+    assert_equal 4, p.taggings.size
+  end
+
+  should "return the current user's tag_list" do
+    u1 = User.create
+    u2 = User.create
+    p = Post.new
+    
+    p.tag_as_user(u1) do
+      p.tag_list = "foo, bar"
+      p.save
+    end
+    
+    p.tag_as_user(u2) do
+      p.tag_list = "bar, baz"
+      p.save
+    end
+
+    p.tag_as_user(u1) do
+      assert_equal ["foo", "bar"], p.tag_list
+    end
+
+    p.tag_as_user(u2) do
+      assert_equal ["bar", "baz"], p.tag_list
+    end
+
+    assert_equal [], p.tag_list
+  end
+end

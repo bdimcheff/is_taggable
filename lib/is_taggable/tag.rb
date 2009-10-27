@@ -12,4 +12,6 @@ class Tag < ActiveRecord::Base
 
   named_scope :with_name_like_and_kind, lambda { |name, kind| { :conditions => ["name like ? AND kind = ?", name, kind] } }
   named_scope :of_kind,                 lambda { |kind| { :conditions => {:kind => kind} } }
+  named_scope :by_user, lambda { |user| {:include => :taggings, :conditions => ["taggings.user_id = ? AND taggings.user_type = ?", user.id, user.class.to_s]}}
+  named_scope :no_user, :include => :taggings, :conditions => ["taggings.user_id IS NULL"]
 end

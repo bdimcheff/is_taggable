@@ -33,3 +33,14 @@ Expectations do
     Tag.of_kind("language").first
   end
 end
+
+class TagTest < Test::Unit::TestCase
+  should "find all tags by a user" do
+    user = User.create
+
+    tag = Tag.create(:name => "foo", :kind => "bar")
+    tagging = Tagging.create(:tag => tag, :user => user)
+
+    assert_equal tag, Tag.by_user(user).first
+  end
+end

@@ -51,6 +51,7 @@ module IsTaggable
 
         has_many   :taggings, :as      => :taggable, :dependent => :destroy
         has_many   :tags,     :through => :taggings
+        attr_accessor :tag_user
         after_save :save_tags
 
         tag_kinds.each do |k|
@@ -67,45 +68,71 @@ module IsTaggable
       end
 
       def get_tag_list(kind)
-        set_tag_list(kind, tags.of_kind(kind).map(&:name)) if tag_list_instance_variable(kind).nil?
+        set_tag_list(kind, tags_of_kind_and_user(kind, tag_user).map(&:name)) if tag_list_instance_variable(kind).nil?
+
         tag_list_instance_variable(kind)
       end
 
+      def tag_as_user(user)
+        self.tag_user = user
+
+        yield
+
+        self.tag_user = nil
+        reset_tag_lists
+      end
+
       protected
-        def tag_list_name_for_kind(kind)
-          "@#{kind}_list"
-        end
-        
-        def tag_list_instance_variable(kind)
-          instance_variable_get(tag_list_name_for_kind(kind))
+      def tag_list_name_for_kind(kind)
+        "@#{kind}_list"
+      end
+      
+      def tag_list_instance_variable(kind)
+        instance_variable_get(tag_list_name_for_kind(kind))
+      end
+
+      def save_tags
+        tag_kinds.each do |tag_kind|
+          delete_unused_tags(tag_kind)
+          add_new_tags(tag_kind)
+          set_tag_list(tag_kind, tags_of_kind_and_user(tag_kind, tag_user).map(&:name))
         end
 
-        def save_tags
-          tag_kinds.each do |tag_kind|
-            delete_unused_tags(tag_kind)
-            add_new_tags(tag_kind)
-            set_tag_list(tag_kind, tags.of_kind(tag_kind).map(&:name))
+        taggings.each(&:save)
+      end
+      
+      def delete_unused_tags(tag_kind)
+        tags_of_kind_and_user(tag_kind, tag_user).each { |t| tags.delete(t) unless get_tag_list(tag_kind).include?(t.name) }
+      end
+
+      def add_new_tags(tag_kind)
+        tag_names = tags_of_kind_and_user(tag_kind, tag_user).map(&:name)
+        
+        get_tag_list(tag_kind).each do |tag_name|
+          if tag_options[:fixed]
+            tag = Tag.with_name_like_and_kind(tag_name, tag_kind).first unless tag_names.include?(tag_name)
+          else
+            tag = Tag.find_or_initialize_with_name_like_and_kind(tag_name, tag_kind) unless tag_names.include?(tag_name)
           end
 
-          taggings.each(&:save)
-        end
-        
-        def delete_unused_tags(tag_kind)
-          tags.of_kind(tag_kind).each { |t| tags.delete(t) unless get_tag_list(tag_kind).include?(t.name) }
-        end
-
-        def add_new_tags(tag_kind)
-          tag_names = tags.of_kind(tag_kind).map(&:name)
-          get_tag_list(tag_kind).each do |tag_name|
-            if tag_options[:fixed]
-              tag = Tag.with_name_like_and_kind(tag_name, tag_kind) unless tag_names.include?(tag_name)
-            else
-              tag = Tag.find_or_initialize_with_name_like_and_kind(tag_name, tag_kind) unless tag_names.include?(tag_name)
-            end
-
-            tags << tag if tag
+          if tag
+            tagging = Tagging.new(:user => tag_user, :taggable => self, :tag => tag)
+            taggings << tagging
           end
         end
+      end
+      
+      def tags_of_kind_and_user(kind, user)
+        all_tags = tags.of_kind(kind)
+        all_tags = user ? all_tags.by_user(user) : all_tags.no_user
+        all_tags
+      end
+      
+      def reset_tag_lists
+        tag_kinds.each do |tag_kind|
+          instance_variable_set(tag_list_name_for_kind(tag_kind), nil)
+        end
+      end
     end
   end
 end
