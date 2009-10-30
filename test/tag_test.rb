@@ -38,9 +38,16 @@ class TagTest < Test::Unit::TestCase
   should "find all tags by a user" do
     user = User.create
 
-    tag = Tag.create(:name => "foo", :kind => "bar")
+    tag = Tag.find_or_create_by_name_and_kind(:name => "foo", :kind => "bar")
     tagging = Tagging.create(:tag => tag, :user => user)
 
     assert_equal tag, Tag.by_user(user).first
+  end
+
+  should "find all tags by no user" do
+    tag = Tag.find_or_create_by_name_and_kind(:name => "foo", :kind => "bar")
+    tagging = Tagging.create(:tag => tag)
+
+    assert_equal tag, Tag.by_user(nil).last
   end
 end
