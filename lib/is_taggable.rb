@@ -123,9 +123,7 @@ module IsTaggable
       end
       
       def tags_of_kind_and_user(kind, user)
-        all_tags = tags.of_kind(kind)
-        all_tags = user ? all_tags.by_user(user) : all_tags.no_user
-        all_tags
+        tags.of_kind(kind).by_user(user)
       end
       
       def reset_tag_lists
