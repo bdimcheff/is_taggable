@@ -20,4 +20,5 @@ class Tag < ActiveRecord::Base
     end
   }
   named_scope :no_user, :include => :taggings, :conditions => ["taggings.user_id IS NULL"]
+  named_scope :any_user, :include => :taggings, :conditions => ["taggings.user_id IS NOT NULL"]
 end

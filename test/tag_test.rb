@@ -50,4 +50,13 @@ class TagTest < Test::Unit::TestCase
 
     assert Tag.by_user(nil).include? tag
   end
+
+  should "find all tags with a valid user" do
+    user = User.create
+
+    tag = Tag.find_or_create_by_name_and_kind(:name => "foo", :kind => "bar")
+    Tagging.create(:tag => tag, :user => user)
+
+    assert Tag.any_user.include? tag
+  end
 end
