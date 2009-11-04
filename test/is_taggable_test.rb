@@ -175,4 +175,25 @@ class IsTaggableTest < Test::Unit::TestCase
 
     assert_equal [], p.tag_list
   end
+  
+  should "return the tag list inside a block after calling outside a block" do
+    u = User.create
+    p = Post.new
+    
+    p.tag_list = "baz, quux"
+    p.save
+    
+    p.tag_as_user(u) do
+      p.tag_list = "foo, bar"
+      p.save
+    end
+
+    assert_equal ["baz", "quux"], p.tag_list
+    
+    p.tag_as_user(u) do
+      assert_equal ["foo", "bar"], p.tag_list
+    end
+    
+    assert_equal 4, p.taggings.size
+  end
 end

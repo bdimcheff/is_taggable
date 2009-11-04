@@ -74,6 +74,7 @@ module IsTaggable
       end
 
       def tag_as_user(user)
+        reset_tag_lists
         self.tag_user = user
 
         yield
